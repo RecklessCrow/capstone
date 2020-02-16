@@ -11,13 +11,13 @@ game_is_running = True
 # TODO Rename Screenshot file. Remove preprocess call? Access OS to get window size and location
 def capture_window():
     with mss.mss() as sct:
-        i = 0
-        while game_is_running and i < 1:
+        frame_number = 0
+        while game_is_running:
             interval = 2.0 / 60.0  # running 60 fps, capture every other frame
 
             time.sleep(interval)  # Wait some time before taking the next screen shot
 
-            screen_shot = f'screen_shots/frame_{i}.png'
+            screen_shot = f'screen_shots/frame_{frame_number}.png'
 
             window_pos_and_size = subprocess.check_output(["bash", "window_location_script.bash"])
             window_pos_and_size = window_pos_and_size.split(b', ')
@@ -29,8 +29,6 @@ def capture_window():
             y       = int(window_pos_and_size[3]) + menu_offset
 
             # The screen part to capture
-            # Framed game in top left corner (0, 0) with 85px offset for game menu + linux top bar.
-            # May need to change if using a different OS
             monitor = {
                 "top": y,
                 "left": x,
@@ -45,7 +43,7 @@ def capture_window():
             # Save to the picture file
             mss.tools.to_png(sct_img.rgb, sct_img.size, output=output)
 
-            i += 1
+            frame_number += 1
 
 
 # TODO bitmap image?
