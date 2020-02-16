@@ -69,36 +69,39 @@ def preprocess(file_name):
     # cv2.imshow('', img)  # use to display image
     # cv2.waitKey(0)  # halts program until the '0' key is pressed so you can look at the image
 
+    # open screenshot
     img = cv2.imread(file_name)
 
-    # Black and white
+    # Greyscale Image
     img = get_grayscale(img)
 
-    # Pure Black and White
+    # Black and White
     img = thresholding(img)
 
     # Swap Black and White, easier to parse
     img = cv2.bitwise_not(img)
 
-    # Smoother text0
+    # Smoother text
     img = remove_noise(img)
 
     # These numbers are for 3x zoom on Mesen, adjust for bigger or smaller
+    score_range = img[200:250, 600:]
+    msg_range = img[350:450, 150:450]
 
     # Crop score out of game
-    parse_score = img[200:250, 600:]
-    score = pytesseract.image_to_string(parse_score, config='digits')
+    score = pytesseract.image_to_string(score_range, config='digits')
+
+    # Try to cast the parse into an int
     try:
         score = int(score)
     except ValueError:
         score = 0
 
     running = False
-    parse_game_over = img[350:450, 150:450]
-    game_over = pytesseract.image_to_string(parse_game_over)
-    if game_over.lower() == 'start':
+    msg = pytesseract.image_to_string(msg_range)
+    if msg.lower() == 'start':
         running = True
-    elif game_over.lower() == 'game over':
+    elif msg.lower() == 'game over':
         running = False
 
     return score, running
@@ -118,8 +121,3 @@ def remove_noise(image):
 def thresholding(image):
     return cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
-
-training = True
-while training:
-    capture_window()
-# preprocess('screen_shots/frame_30.png')
