@@ -5,13 +5,13 @@ import pytesseract
 import cv2
 import subprocess
 
-game_is_running = True
-
 
 # TODO Rename Screenshot file. Remove preprocess call? Access OS to get window size and location
 def capture_window():
     with mss.mss() as sct:
-        frame_number = 0
+        game_is_running = True
+        frame_number = 1
+        previous_score = 0
         while game_is_running:
             interval = 2.0 / 60.0  # running 60 fps, capture every other frame
 
@@ -23,10 +23,10 @@ def capture_window():
             window_pos_and_size = window_pos_and_size.split(b', ')
 
             menu_offset = 30  # Toolbar of Mesen just looked unattractive, use this to get rid of it
-            width   = int(window_pos_and_size[0])
-            height  = int(window_pos_and_size[1]) - menu_offset
-            x       = int(window_pos_and_size[2])
-            y       = int(window_pos_and_size[3]) + menu_offset
+            width = int(window_pos_and_size[0])
+            height = int(window_pos_and_size[1]) - menu_offset
+            x = int(window_pos_and_size[2])
+            y = int(window_pos_and_size[3]) + menu_offset
 
             # The screen part to capture
             monitor = {
@@ -43,7 +43,24 @@ def capture_window():
             # Save to the picture file
             mss.tools.to_png(sct_img.rgb, sct_img.size, output=output)
 
-            frame_number += 1
+            current_score, game_is_running = preprocess(screen_shot)
+
+            # Invalid score if 0, less than the old score, or greater than double the current value
+            if (current_score > (previous_score * 2) and previous_score != 0) \
+                    or (current_score < previous_score) \
+                    or (current_score == 0 and previous_score != 0):
+                current_score = previous_score
+
+            if current_score != 0:
+                print(current_score)
+
+            # Only keep 2 seconds of data
+            if frame_number < 60:
+                frame_number += 1
+            else:
+                frame_number = 0
+
+            previous_score = current_score
 
 
 # TODO bitmap image?
@@ -69,16 +86,22 @@ def preprocess(file_name):
     # These numbers are for 3x zoom on Mesen, adjust for bigger or smaller
 
     # Crop score out of game
-    parse_score = img[200:300, 575:800]
-    score = int(pytesseract.image_to_string(parse_score))
+    parse_score = img[200:250, 600:]
+    score = pytesseract.image_to_string(parse_score, config='digits')
+    try:
+        score = int(score)
+    except ValueError:
+        score = 0
 
-    running = True
+    running = False
     parse_game_over = img[350:450, 150:450]
     game_over = pytesseract.image_to_string(parse_game_over)
-    if game_over.lower() == 'game over':
+    if game_over.lower() == 'start':
+        running = True
+    elif game_over.lower() == 'game over':
         running = False
 
-    # return processed, score, running
+    return score, running
 
 
 # get grayscale image
@@ -96,4 +119,7 @@ def thresholding(image):
     return cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
 
-capture_window()
+training = True
+while training:
+    capture_window()
+# preprocess('screen_shots/frame_30.png')
