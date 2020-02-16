@@ -1,29 +1,41 @@
+import time
 import mss
 import mss.tools
 import pytesseract
 import cv2
+import subprocess
+
+game_is_running = True
 
 
-# TODO Rename Screenshot file. Remove preprocess call?
-def capture_window(running):
+# TODO Rename Screenshot file. Remove preprocess call? Access OS to get window size and location
+def capture_window():
     with mss.mss() as sct:
-        while running:
-            screen_shot = 'test.png'
+        i = 0
+        while game_is_running and i < 1:
+            interval = 2.0 / 60.0  # running 60 fps, capture every other frame
 
-            monitor_number = 1
-            mon = sct.monitors[monitor_number]
+            time.sleep(interval)  # Wait some time before taking the next screen shot
 
-            # Used zoom x3 on mesen
-            width = 255 * 3
-            height = 240 * 3
+            screen_shot = f'screen_shots/frame_{i}.png'
+
+            window_pos_and_size = subprocess.check_output(["bash", "window_location_script.bash"])
+            window_pos_and_size = window_pos_and_size.split(b', ')
+
+            menu_offset = 30  # Toolbar of Mesen just looked unattractive, use this to get rid of it
+            width   = int(window_pos_and_size[0])
+            height  = int(window_pos_and_size[1]) - menu_offset
+            x       = int(window_pos_and_size[2])
+            y       = int(window_pos_and_size[3]) + menu_offset
 
             # The screen part to capture
+            # Framed game in top left corner (0, 0) with 85px offset for game menu + linux top bar.
+            # May need to change if using a different OS
             monitor = {
-                "top": mon["top"] + 85,
-                "left": mon["left"],
+                "top": y,
+                "left": x,
                 "width": width,
-                "height": height,
-                "mon": monitor_number,
+                "height": height
             }
             output = screen_shot.format(**monitor)
 
@@ -33,19 +45,19 @@ def capture_window(running):
             # Save to the picture file
             mss.tools.to_png(sct_img.rgb, sct_img.size, output=output)
 
-            preprocess(screen_shot)
+            i += 1
 
 
 # TODO bitmap image?
 # returns preprocessed image and game score
 def preprocess(file_name):
+    # cv2.imshow('', img)  # use to display image
+    # cv2.waitKey(0)  # halts program until the '0' key is pressed so you can look at the image
+
     img = cv2.imread(file_name)
 
     # Black and white
     img = get_grayscale(img)
-
-    cv2.imshow("", img)
-    cv2.waitKey(0)
 
     # Pure Black and White
     img = thresholding(img)
@@ -53,14 +65,22 @@ def preprocess(file_name):
     # Swap Black and White, easier to parse
     img = cv2.bitwise_not(img)
 
-    # Smoother text
+    # Smoother text0
     img = remove_noise(img)
+
+    # These numbers are for 3x zoom on Mesen, adjust for bigger or smaller
 
     # Crop score out of game
     parse_score = img[200:300, 575:800]
     score = int(pytesseract.image_to_string(parse_score))
 
-    # return processed, score
+    running = True
+    parse_game_over = img[350:450, 150:450]
+    game_over = pytesseract.image_to_string(parse_game_over)
+    if game_over.lower() == 'game over':
+        running = False
+
+    # return processed, score, running
 
 
 # get grayscale image
