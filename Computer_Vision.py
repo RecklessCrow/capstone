@@ -5,15 +5,17 @@ import pytesseract
 import cv2
 import subprocess
 
+# Globals, may need to turn into self.name variables should I make these classes objects
+running = False
 
-# TODO Rename Screenshot file. Remove preprocess call? Access OS to get window size and location
+
+# TODO maybe make this into an object so that the bitmap may be accessed
+# may change to pillow to loop the function efficiently
 def capture_window():
     with mss.mss() as sct:
-        game_is_running = True
         frame_number = 1
-        previous_score = 0
-        while game_is_running:
-            interval = 2.0 / 60.0  # running 60 fps, capture every other frame
+        while frame_number < 30:
+            interval = 1.0 / 60.0  # running 60 fps
 
             time.sleep(interval)  # Wait some time before taking the next screen shot
 
@@ -43,29 +45,24 @@ def capture_window():
             # Save to the picture file
             mss.tools.to_png(sct_img.rgb, sct_img.size, output=output)
 
-            current_score, game_is_running = preprocess(screen_shot)
+            # TODO Save bitmap?
+            bitmap = sct_img.pixels()
 
-            # Invalid score if 0, less than the old score, or greater than double the current value
-            if (current_score > (previous_score * 2) and previous_score != 0) \
-                    or (current_score < previous_score) \
-                    or (current_score == 0 and previous_score != 0):
-                current_score = previous_score
+            frame_number += 1
 
-            if current_score != 0:
-                print(current_score)
-
-            # Only keep 2 seconds of data
-            if frame_number < 60:
-                frame_number += 1
-            else:
-                frame_number = 0
-
-            previous_score = current_score
+            # current_score, game_is_running = preprocess(screen_shot)
+            #
+            # # Invalid score if 0, less than the old score, or greater than double the current value
+            # if (current_score > (previous_score * 2) and previous_score != 0) \
+            #         or (current_score < previous_score) \
+            #         or (current_score == 0 and previous_score != 0):
+            #     current_score = previous_score
+            #
+            # previous_score = current_score
 
 
-# TODO bitmap image?
 # returns preprocessed image and game score
-def preprocess(file_name):
+def get_score_and_state(file_name):
     # cv2.imshow('', img)  # use to display image
     # cv2.waitKey(0)  # halts program until the '0' key is pressed so you can look at the image
 
@@ -88,7 +85,7 @@ def preprocess(file_name):
     score_range = img[200:250, 600:]
     msg_range = img[350:450, 150:450]
 
-    # Crop score out of game
+    # Crop score out of image
     score = pytesseract.image_to_string(score_range, config='digits')
 
     # Try to cast the parse into an int
@@ -97,14 +94,14 @@ def preprocess(file_name):
     except ValueError:
         score = 0
 
-    running = False
+    # crop info message out of image
     msg = pytesseract.image_to_string(msg_range)
     if msg.lower() == 'start':
         running = True
     elif msg.lower() == 'game over':
         running = False
 
-    return score, running
+    return score
 
 
 # get grayscale image
