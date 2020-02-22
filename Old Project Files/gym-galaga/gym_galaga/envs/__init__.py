@@ -1,0 +1,1 @@
+from gym_galaga.envs.galaga_env import GalagaEnv

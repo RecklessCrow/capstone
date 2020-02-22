@@ -1,0 +1,20 @@
+{
+  "done": {
+    "condition": "all",
+    "variables": {
+      "is_dead": {
+        "op": "nonzero"
+      },
+      "lives": {
+        "op": "zero"
+      }
+    }
+  },
+  "reward": {
+    "variables": {
+      "nb_hits": {
+	"reward": 1.0
+      }
+    }
+  }
+}
