@@ -36,6 +36,7 @@ class RetroEnv(gym.Env):
         self.initial_state = None
         self.players = players
         self.old_score = 0
+        self.old_hits = 0
         self.old_stage = 1
 
         metadata = {}
@@ -276,13 +277,15 @@ class RetroEnv(gym.Env):
         self.statename = statename
 
     def compute_step(self):
-        current_score = self.data.lookup_value("score")
+        hits = self.data.lookup_value("nb_hits")
         current_stage = self.data.lookup_value("current_stage")
 
-        reward = (current_score - self.old_score) / 10000
+        # reward = (hits - self.old_hits)
+        # self.old_hits = hits
+        reward = 0
 
         if self.old_stage < current_stage:
-            reward += 1.0
+            reward += 1000.0
             self.old_stage += 1
 
         done = self.data.is_done()

@@ -3,7 +3,8 @@ from keras.layers import ConvLSTM2D, Conv2D, Dense, Flatten, Permute
 from keras.optimizers import Adam, nadam
 
 from rl.agents.dqn import DQNAgent
-from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy, BoltzmannQPolicy, MaxBoltzmannQPolicy
+from rl.agents.ddpg import DDPGAgent
+from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy, BoltzmannQPolicy, MaxBoltzmannQPolicy, BoltzmannGumbelQPolicy
 from rl.memory import SequentialMemory
 from rl.core import Processor
 
@@ -13,18 +14,18 @@ import numpy as np
 # Constants
 TARGET_IMAGE_SHAPE = (128, 128)  # Size we want our image to be for input into CNN in (w, h)
 
-ALPHA = 0.00025  # Learning rate
-GAMMA = 0.99  # Discount rate
-EPSILON_MAX = 1.0  # Probability of a random action
-EPSILON_MIN = 0.1
-EPSILON_TEST = 0.5
+ALPHA           = 0.00025  # Learning rate
+GAMMA           = 0.99  # Discount rate
+EPSILON_MAX     = 1.0  # Probability of a random action
+EPSILON_MIN     = 0.1
+EPSILON_TEST    = 0.5
 
 MAX_EXPERIENCES = 1000000  # Max size of replay buffer
-EXAMPLE_PERIOD   = int(MAX_EXPERIENCES / 10)  # Number of actions before observation network gets updated
-TARGET_UPDATE = int(EXAMPLE_PERIOD / 2)  # Min size before training
+EXAMPLE_PERIOD  = int(MAX_EXPERIENCES / 10)  # Number of actions before observation network gets updated
+TARGET_UPDATE   = int(EXAMPLE_PERIOD / 4)  # Min size before training
 WINDOW_LENGTH   = 5  # Number of frames observable in an input
 
-DENSE = 256
+DENSE = 512
 
 
 class ImageProcessor(Processor):
@@ -60,20 +61,20 @@ def make_model(k):
     ))
     # self.model.add(ConvLSTM2D())
     model.add(Conv2D(
-        32,  # Filters i.e. outputs
-        (8, 8),  # Kernal size i.e. size of window inside nn
+        128,  # Filters i.e. outputs
+        (12, 12),  # Kernal size i.e. size of window inside nn
         strides=(4, 4),
         activation='relu'
     ))
     model.add(Conv2D(
-        64,
-        (3, 3),
+        256,
+        (6, 6),
         strides=(2, 2),
         activation='relu'
     ))
     model.add(Conv2D(
-        64,
-        (2, 2),
+        256,
+        (4, 4),
         strides=(1, 1),
         activation='relu'
     ))
@@ -95,12 +96,15 @@ def make_model(k):
         activation='linear'
     ))
 
-    print(model.summary())
-
     return model
 
 
-def make_agent(k):
+def make_actor_critic():
+    actor, critic = 0
+    return actor, critic
+
+
+def make_DQN_agent(k):
     model = make_model(k)
 
     memory = SequentialMemory(
@@ -111,7 +115,7 @@ def make_agent(k):
     processor = ImageProcessor()
 
     policy = LinearAnnealedPolicy(
-        inner_policy=MaxBoltzmannQPolicy(),
+        inner_policy=EpsGreedyQPolicy(),
         attr='eps',
         value_max=EPSILON_MAX,
         value_min=EPSILON_MIN,
@@ -120,8 +124,8 @@ def make_agent(k):
     )
 
     agent = DQNAgent(
-        model=model,
         nb_actions=k,
+        model=model,
         memory=memory,
         processor=processor,
         policy=policy,
@@ -133,7 +137,7 @@ def make_agent(k):
     )
 
     agent.compile(
-        optimizer=Adam(lr=ALPHA),
+        optimizer=nadam(lr=ALPHA),
         metrics=['mae']
     )
 
