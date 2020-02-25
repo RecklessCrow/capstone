@@ -4,7 +4,8 @@ from keras.optimizers import Adam, nadam
 
 from rl.agents.dqn import DQNAgent
 from rl.agents.ddpg import DDPGAgent
-from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy, BoltzmannQPolicy, MaxBoltzmannQPolicy, BoltzmannGumbelQPolicy
+from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy, BoltzmannQPolicy, MaxBoltzmannQPolicy, \
+    BoltzmannGumbelQPolicy
 from rl.memory import SequentialMemory
 from rl.core import Processor
 
@@ -12,18 +13,18 @@ from PIL import Image, ImageOps
 import numpy as np
 
 # Constants
-TARGET_IMAGE_SHAPE = (128, 128)  # Size we want our image to be for input into CNN in (w, h)
+TARGET_IMAGE_SHAPE = (84, 84)  # Size we want our image to be for input into CNN in (w, h) for B&W
 
-ALPHA           = 0.00025  # Learning rate
-GAMMA           = 0.99  # Discount rate
-EPSILON_MAX     = 1.0  # Probability of a random action
-EPSILON_MIN     = 0.1
-EPSILON_TEST    = 0.5
+ALPHA = 0.00025  # Learning rate
+GAMMA = 0.99  # Discount rate
+EPSILON_MAX = 1.0  # Probability of a random action
+EPSILON_MIN = 0.1
+EPSILON_TEST = 0.5
 
 MAX_EXPERIENCES = 1000000  # Max size of replay buffer
-EXAMPLE_PERIOD  = int(MAX_EXPERIENCES / 10)  # Number of actions before observation network gets updated
-TARGET_UPDATE   = int(EXAMPLE_PERIOD / 4)  # Min size before training
-WINDOW_LENGTH   = 5  # Number of frames observable in an input
+EXAMPLE_PERIOD = int(MAX_EXPERIENCES / 10)  # Number of actions before observation network gets updated
+TARGET_UPDATE = int(EXAMPLE_PERIOD / 4)  # Min size before training
+WINDOW_LENGTH = 10  # Number of frames observable in an input
 
 DENSE = 512
 
@@ -64,36 +65,43 @@ def make_model(k):
         128,  # Filters i.e. outputs
         (12, 12),  # Kernal size i.e. size of window inside nn
         strides=(4, 4),
-        activation='relu'
+        activation='relu',
+        kernel_initializer='RandomUniform'
     ))
     model.add(Conv2D(
         256,
         (6, 6),
         strides=(2, 2),
-        activation='relu'
+        activation='relu',
+        kernel_initializer='RandomUniform'
     ))
     model.add(Conv2D(
         256,
         (4, 4),
         strides=(1, 1),
-        activation='relu'
+        activation='relu',
+        kernel_initializer='RandomUniform'
     ))
     model.add(Flatten())
     model.add(Dense(
         units=DENSE,
-        activation='relu'
+        activation='relu',
+        kernel_initializer='RandomUniform'
     ))
     model.add(Dense(
         units=DENSE * 2,
-        activation='relu'
+        activation='relu',
+        kernel_initializer='RandomUniform'
     ))
     model.add(Dense(
         units=DENSE,
-        activation='relu'
+        activation='relu',
+        kernel_initializer='RandomUniform'
     ))
     model.add(Dense(
         units=k,
-        activation='linear'
+        activation='linear',
+        kernel_initializer='RandomUniform'
     ))
 
     return model

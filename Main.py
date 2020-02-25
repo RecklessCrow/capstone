@@ -1,16 +1,15 @@
-import Deep_Q_Learning_Keras as child
+import Deep_Q_Learning_Keras as DQL
 from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 import retro
 
 # Constants
-ENVIRONMENT = 'Galaga-Nes'
+ENVIRONMENT             = 'Galaga-Nes'
 WEIGHTS_FILE            = f'dqn_{ENVIRONMENT}_weights.h5f'
 CHECKPOINT_WEIGHTS_FILE = f'dqn_{ENVIRONMENT}_weights_checkpoint.h5f'
 LOG_FILE                = f'dqn_{ENVIRONMENT}_log.json'
 
-TRAIN = True
-VISUALIZE = False
-
+TRAIN       = True
+VISUALIZE   = not TRAIN
 
 if __name__ == '__main__':
 
@@ -18,8 +17,8 @@ if __name__ == '__main__':
         game=ENVIRONMENT,
         use_restricted_actions=retro.Actions.DISCRETE,
         inttype=retro.data.Integrations.ALL
-        )
-    agent = child.make_DQN_agent(env.action_space.n)
+    )
+    agent = DQL.make_DQN_agent(env.action_space.n)
 
     if TRAIN:
 
@@ -28,14 +27,15 @@ if __name__ == '__main__':
 
         agent.fit(
             env=env,
-            nb_steps=25000000,
-            action_repetition=child.WINDOW_LENGTH,
+            nb_steps=1750000,
+            action_repetition=1,
             callbacks=callbacks,
             visualize=VISUALIZE,
-            log_interval=child.TARGET_UPDATE,
-            )
+            log_interval=DQL.TARGET_UPDATE,
+        )
 
         agent.save_weights(WEIGHTS_FILE, overwrite=True)
 
     else:
+        agent.load_weights(WEIGHTS_FILE)
         agent.test(env, nb_episodes=1, visualize=VISUALIZE)

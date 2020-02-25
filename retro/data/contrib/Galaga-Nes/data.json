@@ -24,9 +24,13 @@
       "address": 224,
       "type": ">n7"
     },
-    "shots fired": {
+    "shots_fired": {
       "address": 1188,
       "type": ">n4"
+    },
+    "x_pos": {
+      "address": 515,
+      "type": "|u1"
     }
   }
 }
