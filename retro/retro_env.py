@@ -39,7 +39,8 @@ class RetroEnv(gym.Env):
         self.old_hits = 0
         self.old_stage = 1
         self.old_lives = 2
-        self.flag = True
+        self.dead_flag = True
+        self.hit_flag = 0
 
         metadata = {}
         rom_path = retro.data.get_romfile_path(game, inttype)
@@ -295,31 +296,41 @@ class RetroEnv(gym.Env):
 
         # Reward for killing an alien
         if self.old_hits < current_hits:
-            reward += 2.0
+            reward += 1.0 * (current_hits - self.old_hits)
             self.old_hits += 1
+            self.hit_flag = 0
+        else:
+            self.hit_flag += 1
+
+        # Punish for not hitting anything
+        if self.hit_flag >= 50000 and self.hit_flag % 10:
+            reward -= 0.1
 
         # Reward for getting to next stage
         if self.old_stage < current_stage:
-            reward += 5.0
+            reward += 10.0
             self.old_stage += 1
 
         # If farther away from center, give less reward. 88 is biggest delta
-        delta_x = np.abs(center - current_x)
-        if delta_x <= 44:
-            reward += 0.001
-        else:
-            reward += -0.001
+        # delta_x = np.abs(center - current_x)
+        # if delta_x <= 44:
+        #     reward += 0.001
+        # else:
+        #     reward -= 0.001
 
         # If ship dies punish it
-        if is_hit != 0 and self.flag:
-            reward = -1.0
-            self.flag = False
+        if is_hit != 0 and self.dead_flag:
+            reward = -15.0
+            self.dead_flag = False
+            if self.hit_flag >= 50000:
+                reward -= 1000
+            self.hit_flag = 0
         else:
-            self.flag = is_hit == 0
+            self.dead_flag = is_hit == 0
 
         done = self.data.is_done()
 
-        return reward, done, self.data.lookup_all()
+        return reward*10, done, self.data.lookup_all()
 
     def record_movie(self, path):
         self.movie = retro.Movie(path, True, self.players)

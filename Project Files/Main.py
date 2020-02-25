@@ -12,7 +12,7 @@ LOG_FILE                = f'dqn_{ENVIRONMENT}_log.json'
 
 TRAIN       = True
 RECORD      = True
-VISUALIZE   = False
+RENDER      = False
 
 if __name__ == '__main__':
 
@@ -37,7 +37,7 @@ if __name__ == '__main__':
             nb_steps=1750000,
             action_repetition=1,
             callbacks=callbacks,
-            visualize=VISUALIZE,
+            visualize=RENDER,
             log_interval=DQL.TARGET_UPDATE,
         )
 
@@ -45,4 +45,7 @@ if __name__ == '__main__':
 
     else:
         agent.load_weights(WEIGHTS_FILE)
-        agent.test(env, nb_episodes=1, visualize=VISUALIZE)
+        agent.test(
+            env, nb_episodes=1,
+            visualize=RENDER
+        )
