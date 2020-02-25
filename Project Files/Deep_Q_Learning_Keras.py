@@ -17,9 +17,9 @@ TARGET_IMAGE_SHAPE = (84, 84)  # Size we want our image to be for input into CNN
 
 ALPHA = 0.00025  # Learning rate
 GAMMA = 0.99  # Discount rate
-EPSILON_MAX = 1.0  # Probability of a random action
+EPSILON_MAX = 0.5  # Probability of a random action
 EPSILON_MIN = 0.1
-EPSILON_TEST = 0.5
+EPSILON_TEST = 0.25
 
 MAX_EXPERIENCES = 1000000  # Max size of replay buffer
 EXAMPLE_PERIOD = int(MAX_EXPERIENCES / 10)  # Number of actions before observation network gets updated

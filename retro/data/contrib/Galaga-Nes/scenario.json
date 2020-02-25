@@ -10,15 +10,7 @@
       }
     }
   },
-  "reward": {
-    "variables": {
-      "nb_hits": {
-	"reward": 1.0
-      }
-    }
-  },
   "actions": [
-    [[], ["LEFT"], ["RIGHT"]],
-    [[], ["B"]]
+    [[], ["LEFT"], ["RIGHT"], ["B"]]
   ]
 }

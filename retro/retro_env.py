@@ -39,6 +39,7 @@ class RetroEnv(gym.Env):
         self.old_hits = 0
         self.old_stage = 1
         self.old_lives = 2
+        self.flag = True
 
         metadata = {}
         rom_path = retro.data.get_romfile_path(game, inttype)
@@ -278,6 +279,13 @@ class RetroEnv(gym.Env):
         self.statename = statename
 
     def compute_step(self):
+
+        # if self.players > 1:
+        #     reward = [self.data.current_reward(p) for p in range(self.players)]
+        # else:
+        #     reward = self.data.current_reward()
+        # done = self.data.is_done()
+
         current_stage   = self.data.lookup_value("current_stage")
         current_hits    = self.data.lookup_value("nb_hits")
         current_x       = self.data.lookup_value("x_pos")
@@ -296,13 +304,18 @@ class RetroEnv(gym.Env):
             self.old_stage += 1
 
         # If farther away from center, give less reward. 88 is biggest delta
-        # -1 for being in corner
         delta_x = np.abs(center - current_x)
-        reward += 1 - (delta_x * (2 / 88))
+        if delta_x <= 44:
+            reward += 0.001
+        else:
+            reward += -0.001
 
         # If ship dies punish it
-        if is_hit != 0:
-            reward = -10.0
+        if is_hit != 0 and self.flag:
+            reward = -1.0
+            self.flag = False
+        else:
+            self.flag = is_hit == 0
 
         done = self.data.is_done()
 

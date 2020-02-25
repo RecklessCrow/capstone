@@ -4,20 +4,27 @@ import retro
 
 # Constants
 ENVIRONMENT             = 'Galaga-Nes'
+movie                   = retro.Movie('example_1.bk2')
+movie.step()
 WEIGHTS_FILE            = f'dqn_{ENVIRONMENT}_weights.h5f'
 CHECKPOINT_WEIGHTS_FILE = f'dqn_{ENVIRONMENT}_weights_checkpoint.h5f'
 LOG_FILE                = f'dqn_{ENVIRONMENT}_log.json'
 
 TRAIN       = True
-VISUALIZE   = not TRAIN
+RECORD      = True
+VISUALIZE   = False
 
 if __name__ == '__main__':
 
     env = retro.RetroEnv(
         game=ENVIRONMENT,
         use_restricted_actions=retro.Actions.DISCRETE,
+        record=RECORD,
         inttype=retro.data.Integrations.ALL
     )
+
+    env.reset()
+
     agent = DQL.make_DQN_agent(env.action_space.n)
 
     if TRAIN:
