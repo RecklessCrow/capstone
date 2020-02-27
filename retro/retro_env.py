@@ -146,7 +146,11 @@ class RetroEnv(gym.Env):
             self._render = self.render
             self._close = self.close
 
-        self.old_lives = self.data.lookup_value("lives")
+        if self.gamename == 'Galaga-Nes':
+            self.old_lives = 2
+        elif self.gamename == 'DigDug-Nes':
+            self.old_lives = 3
+
 
     def _update_obs(self):
         if self._obs_type == retro.Observations.RAM:
@@ -312,13 +316,16 @@ class RetroEnv(gym.Env):
         current_enemies = self.data.lookup_value("enemies")
         reward = 0
 
+        # punish for dying
         if current_lives < self.old_lives:
             reward -= 10.0
             self.old_lives -= 1
 
+        # reward for getting to a new stage
         if current_stage > self.old_stage:
             reward += 1000.0
 
+        # reward = 1 / 10 of the score
         reward += current_score - self.old_score
         self.old_score = current_score
 
@@ -329,6 +336,7 @@ class RetroEnv(gym.Env):
     def get_galaga_reward(self):
         current_stage = self.data.lookup_value("current_stage")
         current_hits = self.data.lookup_value("nb_hits")
+        current_lives = self.data.lookup_value("lives")
         current_x = self.data.lookup_value("x_pos")
         is_hit = self.data.lookup_value("is_dead")
         center = 96
@@ -345,12 +353,16 @@ class RetroEnv(gym.Env):
 
         # Punish for not hitting anything
         if self.hit_flag >= 250:
-            reward -= 0.01
+            reward -= 0.001
 
         # Reward for getting to next stage
         if self.old_stage < current_stage:
-            reward += 10.0
+            reward += 1000.0
             self.old_stage += 1
+
+        if current_lives < self.old_lives:
+            reward -= 1000.0
+            self.old_lives -= 1
 
         return reward
 

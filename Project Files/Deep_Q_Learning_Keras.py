@@ -115,18 +115,17 @@ def make_DQN_agent(k, train, training_actions=None):
     processor = ImageProcessor()
 
     if train:
-        policy = LinearAnnealedPolicy(
-            inner_policy=MaxBoltzmannQPolicy(),
-            attr='eps',
-            value_max=EPSILON_MAX,
-            value_min=EPSILON_MIN,
-            value_test=EPSILON_TEST,
-            nb_steps=MAX_EXPERIENCES
-        )
+        # policy = LinearAnnealedPolicy(
+        #     inner_policy=MaxBoltzmannQPolicy(),
+        #     attr='eps',
+        #     value_max=EPSILON_MAX,
+        #     value_min=EPSILON_MIN,
+        #     value_test=EPSILON_TEST,
+        #     nb_steps=MAX_EXPERIENCES
+        # )
+        policy = GreedyQPolicy()
     else:
-        policy = LinearAnnealedPolicy(
-            inner_policy=GreedyQPolicy()
-        )
+        policy = GreedyQPolicy()
 
     agent = DQNAgent(
         nb_actions=k,
