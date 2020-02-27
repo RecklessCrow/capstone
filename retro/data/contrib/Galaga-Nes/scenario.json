@@ -11,6 +11,6 @@
     }
   },
   "actions": [
-    [[], ["LEFT"], ["RIGHT"], ["B"]]
+    [[], ["LEFT"], ["RIGHT"], ["B"], ["LEFT", "B"], ["RIGHT", "B"]]
   ]
 }

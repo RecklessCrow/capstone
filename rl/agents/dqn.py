@@ -1,10 +1,9 @@
 from __future__ import division
 import warnings
 
-import keras.backend as K
-from keras.models import Model
 from keras.layers import Lambda, Input, Layer, Dense
 
+import retro
 from rl.core import Agent
 from rl.policy import EpsGreedyQPolicy, GreedyQPolicy
 from rl.util import *
@@ -19,7 +18,7 @@ class AbstractDQNAgent(Agent):
     """
     def __init__(self, nb_actions, memory, gamma=.99, batch_size=32, nb_steps_warmup=1000,
                  train_interval=1, memory_interval=1, target_model_update=10000,
-                 delta_range=None, delta_clip=np.inf, custom_model_objects={}, **kwargs):
+                 delta_range=None, delta_clip=np.inf, custom_model_objects={}, training_actions=None, **kwargs):
         super(AbstractDQNAgent, self).__init__(**kwargs)
 
         # Soft vs hard target model updates.
@@ -46,6 +45,11 @@ class AbstractDQNAgent(Agent):
         self.target_model_update = target_model_update
         self.delta_clip = delta_clip
         self.custom_model_objects = custom_model_objects
+
+        if training_actions is not None:
+            self.training_actions = training_actions
+        else:
+            self.training_actions = []
 
         # Related objects.
         self.memory = memory
@@ -224,12 +228,15 @@ class DQNAgent(AbstractDQNAgent):
 
     def forward(self, observation):
         # Select an action.
-        state = self.memory.get_recent_state(observation)
-        q_values = self.compute_q_values(state)
-        if self.training:
-            action = self.policy.select_action(q_values=q_values)
+        if len(self.training_actions) == 0:
+            state = self.memory.get_recent_state(observation)
+            q_values = self.compute_q_values(state)
+            if self.training:
+                action = self.policy.select_action(q_values=q_values)
+            else:
+                action = self.test_policy.select_action(q_values=q_values)
         else:
-            action = self.test_policy.select_action(q_values=q_values)
+            action = self.training_actions.pop(0)
 
         # Book-keeping.
         self.recent_observation = observation
@@ -737,6 +744,9 @@ class NAFAgent(AbstractDQNAgent):
         if self.processor is not None:
             names += self.processor.metrics_names[:]
         return names
+
+
+
 
 
 # Aliases

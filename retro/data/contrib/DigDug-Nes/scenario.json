@@ -1,0 +1,8 @@
+{
+  "done": {
+    "condition": "all",
+      "lives": {
+        "op": "zero"
+      }
+  }
+}

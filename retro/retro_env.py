@@ -23,7 +23,8 @@ class RetroEnv(gym.Env):
     metadata = {'render.modes': ['human', 'rgb_array'],
                 'video.frames_per_second': 60.0}
 
-    def __init__(self, game, state=retro.State.DEFAULT, scenario=None, info=None, use_restricted_actions=retro.Actions.FILTERED,
+    def __init__(self, game, state=retro.State.DEFAULT, scenario=None, info=None,
+                 use_restricted_actions=retro.Actions.FILTERED,
                  record=False, players=1, inttype=retro.data.Integrations.STABLE, obs_type=retro.Observations.IMAGE):
         if not hasattr(self, 'spec'):
             self.spec = None
@@ -99,7 +100,8 @@ class RetroEnv(gym.Env):
         self.num_buttons = len(self.buttons)
 
         try:
-            assert self.data.load(info_path, scenario_path), 'Failed to load info (%s) or scenario (%s)' % (info_path, scenario_path)
+            assert self.data.load(info_path, scenario_path), 'Failed to load info (%s) or scenario (%s)' % (
+            info_path, scenario_path)
         except Exception:
             del self.em
             raise
@@ -111,14 +113,16 @@ class RetroEnv(gym.Env):
                 combos *= len(combo)
             self.action_space = gym.spaces.Discrete(combos ** players)
         elif use_restricted_actions == retro.Actions.MULTI_DISCRETE:
-            self.action_space = gym.spaces.MultiDiscrete([len(combos) if gym_version >= (0, 9, 6) else (0, len(combos) - 1) for combos in self.button_combos] * players)
+            self.action_space = gym.spaces.MultiDiscrete(
+                [len(combos) if gym_version >= (0, 9, 6) else (0, len(combos) - 1) for combos in
+                 self.button_combos] * players)
         else:
             self.action_space = gym.spaces.MultiBinary(self.num_buttons * players)
 
         kwargs = {}
         if gym_version >= (0, 9, 6):
             kwargs['dtype'] = np.uint8
-        
+
         if self._obs_type == retro.Observations.RAM:
             shape = self.get_ram().shape
         else:
@@ -204,7 +208,8 @@ class RetroEnv(gym.Env):
         self.em.step()
         if self.movie_path is not None:
             rel_statename = os.path.splitext(os.path.basename(self.statename))[0]
-            self.record_movie(os.path.join(self.movie_path, '%s-%s-%06d.bk2' % (self.gamename, rel_statename, self.movie_id)))
+            self.record_movie(
+                os.path.join(self.movie_path, '%s-%s-%06d.bk2' % (self.gamename, rel_statename, self.movie_id)))
             self.movie_id += 1
         if self.movie:
             self.movie.step()
@@ -217,7 +222,7 @@ class RetroEnv(gym.Env):
         # Derive a random seed. This gets passed as a uint, but gets
         # checked as an int elsewhere, so we need to keep it below
         # 2**31.
-        seed2 = seeding.hash_seed(seed1 + 1) % 2**31
+        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
         return [seed1, seed2]
 
     def render(self, mode='human', close=False):
@@ -272,7 +277,7 @@ class RetroEnv(gym.Env):
 
     def load_state(self, statename, inttype=retro.data.Integrations.DEFAULT):
         if not statename.endswith('.state'):
-                statename += '.state'
+            statename += '.state'
 
         with gzip.open(retro.data.get_file_path(self.gamename, statename, inttype), 'rb') as fh:
             self.initial_state = fh.read()
@@ -287,50 +292,46 @@ class RetroEnv(gym.Env):
         #     reward = self.data.current_reward()
         # done = self.data.is_done()
 
-        current_stage   = self.data.lookup_value("current_stage")
-        current_hits    = self.data.lookup_value("nb_hits")
-        current_x       = self.data.lookup_value("x_pos")
-        is_hit          = self.data.lookup_value("is_dead")
-        center          = 96
-        reward          = 0
+        if self.gamename == 'Galaga-Nes':
+            reward = self.get_galaga_reward()
+        elif self.gamename == 'DigDug-Nes':
+            reward = self.get_digdug_reward()
+        else:
+            reward = 0
+        done = self.data.is_done()
+
+        return reward, done, self.data.lookup_all()
+
+    def get_digdug_reward(self):
+        return 0
+
+    def get_galaga_reward(self):
+        current_stage = self.data.lookup_value("current_stage")
+        current_hits = self.data.lookup_value("nb_hits")
+        current_x = self.data.lookup_value("x_pos")
+        is_hit = self.data.lookup_value("is_dead")
+        center = 96
+        reward = 0
 
         # Reward for killing an alien
-        if self.old_hits < current_hits:
-            reward += 1.0 * (current_hits - self.old_hits)
-            self.old_hits += 1
+        num_hits = current_hits - self.old_hits
+        if num_hits != 0:
+            reward += 1.0 * num_hits
+            self.old_hits += num_hits
             self.hit_flag = 0
         else:
             self.hit_flag += 1
 
         # Punish for not hitting anything
-        if self.hit_flag >= 50000 and self.hit_flag % 10:
-            reward -= 0.1
+        if self.hit_flag >= 250:
+            reward -= 0.01
 
         # Reward for getting to next stage
         if self.old_stage < current_stage:
             reward += 10.0
             self.old_stage += 1
 
-        # If farther away from center, give less reward. 88 is biggest delta
-        # delta_x = np.abs(center - current_x)
-        # if delta_x <= 44:
-        #     reward += 0.001
-        # else:
-        #     reward -= 0.001
-
-        # If ship dies punish it
-        if is_hit != 0 and self.dead_flag:
-            reward = -15.0
-            self.dead_flag = False
-            if self.hit_flag >= 50000:
-                reward -= 1000
-            self.hit_flag = 0
-        else:
-            self.dead_flag = is_hit == 0
-
-        done = self.data.is_done()
-
-        return reward*10, done, self.data.lookup_all()
+        return reward
 
     def record_movie(self, path):
         self.movie = retro.Movie(path, True, self.players)
