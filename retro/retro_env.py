@@ -39,9 +39,9 @@ class RetroEnv(gym.Env):
         self.old_score = 0
         self.old_hits = 0
         self.old_stage = 1
-        self.old_lives = 2
         self.dead_flag = True
         self.hit_flag = 0
+        self.old_enemies = 0
 
         metadata = {}
         rom_path = retro.data.get_romfile_path(game, inttype)
@@ -145,6 +145,8 @@ class RetroEnv(gym.Env):
             self._reset = self.reset
             self._render = self.render
             self._close = self.close
+
+        self.old_lives = self.data.lookup_value("lives")
 
     def _update_obs(self):
         if self._obs_type == retro.Observations.RAM:
@@ -292,18 +294,37 @@ class RetroEnv(gym.Env):
         #     reward = self.data.current_reward()
         # done = self.data.is_done()
 
+        reward = 0
+        done = True
+
         if self.gamename == 'Galaga-Nes':
             reward = self.get_galaga_reward()
+            done = self.data.is_done()
         elif self.gamename == 'DigDug-Nes':
-            reward = self.get_digdug_reward()
-        else:
-            reward = 0
-        done = self.data.is_done()
+            reward, done = self.get_digdug_reward()
 
         return reward, done, self.data.lookup_all()
 
     def get_digdug_reward(self):
-        return 0
+        current_stage = self.data.lookup_value("round")
+        current_lives = self.data.lookup_value("lives")
+        current_score = self.data.lookup_value("score")
+        current_enemies = self.data.lookup_value("enemies")
+        reward = 0
+
+        if current_lives < self.old_lives:
+            reward -= 10.0
+            self.old_lives -= 1
+
+        if current_stage > self.old_stage:
+            reward += 1000.0
+
+        reward += current_score - self.old_score
+        self.old_score = current_score
+
+        done = current_lives == 0
+
+        return reward, done
 
     def get_galaga_reward(self):
         current_stage = self.data.lookup_value("current_stage")

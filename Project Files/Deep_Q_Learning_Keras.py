@@ -23,8 +23,8 @@ EPSILON_MIN = 0.1
 EPSILON_TEST = 0.25
 
 MAX_EXPERIENCES = 1000000  # Max size of replay buffer
-EXAMPLE_PERIOD = 20000  # Number actions before NN training kicks in
-TARGET_UPDATE = 20000  # Number of actions in an update set
+EXAMPLE_PERIOD = 100000  # Number actions before NN training kicks in
+TARGET_UPDATE = 50000  # Number of actions in an update set
 WINDOW_LENGTH = 5  # Number of frames observable in an input
 
 DENSE = 512

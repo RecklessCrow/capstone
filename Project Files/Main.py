@@ -3,7 +3,7 @@ from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 import retro
 
 # Constants
-ENVIRONMENT             = 'Galaga-Nes'
+ENVIRONMENT             = 'DigDug-Nes'
 MOVIE_FILE              = 'example_1.bk2'
 WEIGHTS_FILE            = f'dqn_{ENVIRONMENT}_weights.h5f'
 CHECKPOINT_WEIGHTS_FILE = f'dqn_{ENVIRONMENT}_weights_checkpoint.h5f'
@@ -27,7 +27,6 @@ def get_training_actions(movie_file=MOVIE_FILE):
     env.initial_state = movie.get_state()
     env.reset()
     actions = []
-    i = 10
     while movie.step():
         keys = []
         for p in range(movie.players):
@@ -73,10 +72,10 @@ if __name__ == '__main__':
 
         agent.fit(
             env=env,
-            nb_steps=1750000,
+            nb_steps=2000000,
             action_repetition=1,
             callbacks=callbacks,
-            visualize=True,
+            visualize=False,
             log_interval=DQL.TARGET_UPDATE,
         )
 
