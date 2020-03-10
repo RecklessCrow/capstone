@@ -348,20 +348,20 @@ class RetroEnv(gym.Env):
             reward += 1.0 * num_hits
             self.old_hits += num_hits
             self.hit_flag = 0
-        else:
-            self.hit_flag += 1
-
-        # Punish for not hitting anything
-        if self.hit_flag >= 250:
-            reward -= 0.001
+        # else:
+        #     self.hit_flag += 1
+        #
+        # # Punish for not hitting anything
+        # if self.hit_flag >= 250:
+        #     reward -= 0.001
 
         # Reward for getting to next stage
         if self.old_stage < current_stage:
-            reward += 1000.0
+            reward += 100.0
             self.old_stage += 1
 
         if current_lives < self.old_lives:
-            reward -= 1000.0
+            reward -= 1.0
             self.old_lives -= 1
 
         return reward
