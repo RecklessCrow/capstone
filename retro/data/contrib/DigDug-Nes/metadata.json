@@ -1,8 +1,0 @@
-{
-  "default_state": "DigDug.Level1.state",
-  "whitelist": {
-    "data.json": [
-      "suspicious type >u2 for lives"
-    ]
-  }
-}
