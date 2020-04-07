@@ -22,10 +22,10 @@ EPSILON_MAX = 1.0  # Probability of a random action
 EPSILON_MIN = 0.1
 EPSILON_TEST = 0.25
 
-MAX_EXPERIENCES = 500000  # Max size of replay buffer
-EXAMPLE_PERIOD = 100000  # Number actions before NN training kicks in
-TARGET_UPDATE = 25000  # Number of actions in an update set
-WINDOW_LENGTH = 5  # Number of frames observable in an input
+MAX_EXPERIENCES = 1000000  # Max size of replay buffer
+EXAMPLE_PERIOD  = 100000  # Number actions before NN training kicks in
+TARGET_UPDATE   = 50000  # Number of actions in an update set
+WINDOW_LENGTH   = 5  # Number of frames observable in an input
 
 DENSE = 512
 
@@ -115,15 +115,14 @@ def make_DQN_agent(k, train, training_actions=None):
     processor = ImageProcessor()
 
     if train:
-        # policy = LinearAnnealedPolicy(
-        #     inner_policy=MaxBoltzmannQPolicy(),
-        #     attr='eps',
-        #     value_max=EPSILON_MAX,
-        #     value_min=EPSILON_MIN,
-        #     value_test=EPSILON_TEST,
-        #     nb_steps=MAX_EXPERIENCES
-        # )
-        policy = GreedyQPolicy()
+        policy = LinearAnnealedPolicy(
+            inner_policy=EpsGreedyQPolicy(),
+            attr='eps',
+            value_max=EPSILON_MAX,
+            value_min=EPSILON_MIN,
+            value_test=EPSILON_TEST,
+            nb_steps=MAX_EXPERIENCES
+        )
     else:
         policy = GreedyQPolicy()
 

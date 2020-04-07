@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
         agent.fit(
             env=env,
-            nb_steps=2000000,
+            nb_steps=5000000,
             action_repetition=1,
             callbacks=callbacks,
             visualize=False,
