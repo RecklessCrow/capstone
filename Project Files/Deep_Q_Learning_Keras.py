@@ -23,8 +23,8 @@ EPSILON_MIN = 0.1
 EPSILON_TEST = 0.25
 
 MAX_EXPERIENCES = 1000000  # Max size of replay buffer
-EXAMPLE_PERIOD  = 100000  # Number actions before NN training kicks in
-TARGET_UPDATE   = 50000  # Number of actions in an update set
+EXAMPLE_PERIOD  = MAX_EXPERIENCES / 10  # Number actions before NN training kicks in
+TARGET_UPDATE   = 25000  # Number of actions in an update set
 WINDOW_LENGTH   = 5  # Number of frames observable in an input
 
 DENSE = 512
@@ -99,11 +99,6 @@ def make_model(k):
     return model
 
 
-def make_actor_critic():
-    actor, critic = 0
-    return actor, critic
-
-
 def make_DQN_agent(k, train, training_actions=None):
     model = make_model(k)
 
@@ -147,17 +142,3 @@ def make_DQN_agent(k, train, training_actions=None):
 
     return agent
 
-
-# get grayscale image
-def get_grayscale(image):
-    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-
-# noise removal
-def remove_noise(image):
-    return cv2.medianBlur(image, 5)
-
-
-# Convert array of pixes to TF tensor
-def preprocess(img):
-    return img

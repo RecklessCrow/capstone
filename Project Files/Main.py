@@ -6,10 +6,10 @@ import retro
 ENVIRONMENT             = 'Galaga-Nes'
 WEIGHTS_FILE            = f'dqn_{ENVIRONMENT}_weights.h5f'
 CHECKPOINT_WEIGHTS_FILE = f'dqn_{ENVIRONMENT}_weights_checkpoint.h5f'
-LOG_FILE                = f'dqn_{ENVIRONMENT}_log.json'
 
-TRAIN       = True
-RECORD      = True
+TRAIN   = True
+LOAD    = False
+RECORD  = True
 
 if __name__ == '__main__':
 
@@ -24,24 +24,19 @@ if __name__ == '__main__':
 
     agent = DQL.make_DQN_agent(env.action_space.n, TRAIN)
 
-    if TRAIN:
+    callbacks = [ModelIntervalCheckpoint(CHECKPOINT_WEIGHTS_FILE, interval=50000)]
 
-        callbacks = [ModelIntervalCheckpoint(CHECKPOINT_WEIGHTS_FILE, interval=250000)]
-        callbacks += [FileLogger(LOG_FILE, interval=100)]
+    if TRAIN:
+        if LOAD:
+            agent.load_weights(WEIGHTS_FILE)
 
         agent.fit(
             env=env,
-            nb_steps=5000000,
+            nb_steps=2500000,
             action_repetition=1,
             callbacks=callbacks,
             visualize=False,
             log_interval=DQL.TARGET_UPDATE,
-        )
-
-        agent.test(
-            env,
-            nb_episodes=10,
-            visualize=True
         )
 
         agent.save_weights(WEIGHTS_FILE, overwrite=True)
