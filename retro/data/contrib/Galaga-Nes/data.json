@@ -1,0 +1,36 @@
+{
+  "info": {
+    "current_stage": {
+      "address": 1155,
+      "type": "|u1"
+    },
+    "high_score": {
+      "address": 248,
+      "type": ">n7"
+    },
+    "is_dead": {
+      "address": 123,
+      "type": "|u1"
+    },
+    "lives": {
+      "address": 1159,
+      "type": "|u1"
+    },
+    "nb_hits": {
+      "address": 1196,
+      "type": ">n4"
+    },
+    "score": {
+      "address": 224,
+      "type": ">n7"
+    },
+    "shots_fired": {
+      "address": 1188,
+      "type": ">n4"
+    },
+    "x_pos": {
+      "address": 515,
+      "type": "|u1"
+    }
+  }
+}

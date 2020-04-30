@@ -1,0 +1,16 @@
+{
+  "done": {
+    "condition": "all",
+    "variables": {
+      "is_dead": {
+        "op": "nonzero"
+      },
+      "lives": {
+        "op": "zero"
+      }
+    }
+  },
+  "actions": [
+    [[], ["LEFT"], ["RIGHT"], ["B"], ["LEFT", "B"], ["RIGHT", "B"]]
+  ]
+}
