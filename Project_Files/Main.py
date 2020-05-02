@@ -70,7 +70,7 @@ def test_dqn(env, keras):
             env=env,
             # Add the appropriate date and time to the end of this file to get the weights of the model trained
             # Or rename the weights file to {ENVIRONMENT}_weights
-            save_file=f'/home/cj/PycharmProjects/capstone/Project Files/weights/{network_type}/{ENVIRONMENT}_weights.h5f',
+            save_file=f'/home/cj/PycharmProjects/capstone/Project_Files/weights/{network_type}/{ENVIRONMENT}_weights.h5f',
             ddqn=DDQN,
             dueling=DUELING
         )
